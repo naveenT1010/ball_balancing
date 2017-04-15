@@ -3,7 +3,9 @@
 from __future__ import print_function
 import cv2
 import rospy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Point, Twist
+import my_constants
+import features.py
 
 def cb(x):
 	pass
@@ -14,6 +16,8 @@ def main():
 	rospy.loginfo("Program has started!!")
 
 	cap = cv2.VideoCapture(0)
+	frame_h, frame_w = cap.get(3), cap.get(4)
+
 	cv2.namedWindow("Direct Feed", cv2.WINDOW_NORMAL)
 	cv2.namedWindow("Detected", cv2.WINDOW_NORMAL)
 	cv2.namedWindow("Settings", cv2.WINDOW_NORMAL)
@@ -43,11 +47,17 @@ def main():
 			hsv_h = (cv2.getTrackbarPos("HUE H", "Settings"), cv2.getTrackbarPos("SAT H", "Settings"), cv2.getTrackbarPos("VAL H", "Settings"))
 			
 			# creating a binary image using the HSV values
-			binary_frame = cv2.inRange(hsv_frame, hsv_l, hsv_h)
+			mask = cv2.inRange(hsv_frame, hsv_l, hsv_h)
 
-			cv2.imshow("Detected", binary_frame)
+			cv2.imshow("Detected", mask)
 
-			if cv2.waitKey(1) & 0xFF == ord('q'):
+			user_input_key = cv2.waitKey(1) & 0xFF
+
+			if user_input_key == ord('b'):
+				extract_feature(mask, "base")
+			elif user_input_key == ord('f'):
+				extract_feature(mask, "front")
+			elif user_input_key == ord('q'):
 				break
 
 	rospy.loginfo("Program Completed.")
